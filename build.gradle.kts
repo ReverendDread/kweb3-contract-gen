@@ -1,6 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
+    application
     kotlin("jvm") version "1.9.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
@@ -29,6 +30,10 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.1")
 
     testImplementation(kotlin("test"))
+}
+
+application {
+    mainClass.set("dev.dread.tools.AppKt")
 }
 
 tasks.test {
