@@ -64,11 +64,10 @@ class ContractABI(
             addModifiers(KModifier.ABSTRACT)
 
             // add parameters
-            val parameters = inputs?.map { solType ->
+            val parameters = inputs?.mapIndexed { i, solType ->
                 val type = solType.getKtType()
                 val annotation = generateTypeAnnotation(type, solType.valueSize, false)
-
-                ParameterSpec.builder(solType.name!!, type).apply {
+                ParameterSpec.builder(solType.getParameterName(i), type).apply {
                     annotation?.let { addAnnotation(it) }
                 }.build()
             }
@@ -163,16 +162,16 @@ class ContractABI(
                     .addModifiers()
                     .addAnnotation(AnnotationSpec.builder(Event.Address::class).build()).build())
                 .apply {
-                    inputs?.forEach { arg ->
+                    inputs?.forEachIndexed { i, arg ->
                         val ktType = arg.getKtType()
-                        addParameter(ParameterSpec.builder(arg.name!!, ktType).build())
-                        properties.add(PropertySpec.builder(arg.name, ktType).apply {
+                        addParameter(ParameterSpec.builder(arg.getParameterName(i), ktType).build())
+                        properties.add(PropertySpec.builder(arg.getParameterName(i), ktType).apply {
                             val valueSize = arg.valueSize
                             val annotation = generateTypeAnnotation(ktType, valueSize, true)
                             if (arg.indexed == true)
                                 addAnnotation(AnnotationSpec.builder(Event.Indexed::class).build())
                             annotation?.let { addAnnotation(it) }
-                            initializer(arg.name)
+                            initializer(arg.getParameterName(i))
                         }.build())
                     }
                 }
@@ -191,20 +190,18 @@ class ContractABI(
             var propertyIndex = 0
             primaryConstructor(
                 FunSpec.constructorBuilder().apply {
-                    components.forEach { namedType ->
+                    components.forEachIndexed { i, namedType ->
                         val solType = namedType.getKtType()
-                        val propName = if (namedType.name!!.isBlank()) "arg${constructorIndex++}" else namedType.name
-                        addParameter(propName, solType)
+                        addParameter(namedType.getParameterName(i), solType)
                     }
                 }.build()
             ).build()
 
-            components.forEach { namedType ->
+            components.forEachIndexed { i, namedType ->
                 val solType = namedType.getKtType()
-                val propName = if (namedType.name!!.isBlank()) "arg${propertyIndex++}" else namedType.name
-                addProperty(PropertySpec.builder(propName, solType).apply {
+                addProperty(PropertySpec.builder(namedType.getParameterName(i), solType).apply {
                     generateTypeAnnotation(solType, namedType.valueSize, true)?.let { addAnnotation(it) }
-                }.initializer(propName).build())
+                }.initializer(namedType.getParameterName(i)).build())
             }
         }
         .addModifiers(KModifier.DATA)

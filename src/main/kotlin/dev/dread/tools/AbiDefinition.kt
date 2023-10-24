@@ -91,6 +91,8 @@ class AbiDefinition(
                 null
         }
 
+        fun getParameterName(index: Int) = if (name.isNullOrBlank()) "param${index}" else name
+
     }
 
     fun getTupleName(): String {
